@@ -7,6 +7,8 @@ import android.util.AttributeSet;
 import android.util.Log;
 import android.view.SurfaceHolder;
 
+import com.pp.client.xplay.jni.Jni;
+
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
@@ -14,7 +16,7 @@ import javax.microedition.khronos.opengles.GL10;
  * Created by qing on 18-10-16.
  */
 
-public class XPlay extends GLSurfaceView implements Runnable,SurfaceHolder.Callback {
+public class XPlay extends GLSurfaceView implements Runnable,SurfaceHolder.Callback{
 
     private static final String TAG = XPlay.class.getSimpleName();
     private GLRenderer mGLRender;
@@ -31,7 +33,9 @@ public class XPlay extends GLSurfaceView implements Runnable,SurfaceHolder.Callb
 
     @Override
     public void surfaceCreated(SurfaceHolder holder) {
-        Log.e(TAG,"=============>>  surfaceCreated");
+        Log.e(TAG,"=============>>11  surfaceCreated");
+        //初始化opengl
+        Jni.initOpenGl(holder.getSurface());
         new Thread(XPlay.this).start();
     }
 
@@ -46,7 +50,6 @@ public class XPlay extends GLSurfaceView implements Runnable,SurfaceHolder.Callb
     @Override
     public void run() {
         Log.e(TAG, "===============>> getHolder().getSurface(): " +getHolder().getSurface());
-//        Jni.open(SDCARDPATH + File.separator + "ffmpeg/VID_20181015_164136.mp4", getHolder().getSurface());
     }
 
     private String SDCARDPATH = Environment.getExternalStorageDirectory().getAbsolutePath();
@@ -55,11 +58,12 @@ public class XPlay extends GLSurfaceView implements Runnable,SurfaceHolder.Callb
         @Override
         public void onSurfaceCreated(GL10 gl, EGLConfig config) {
             Log.e(TAG,"=============>>  onSurfaceCreated");
+            //初始化opengl
+//            Jni.initOpenGl(getHolder().getSurface());
         }
 
         @Override
         public void onSurfaceChanged(GL10 gl, int width, int height) {
-
         }
 
         @Override

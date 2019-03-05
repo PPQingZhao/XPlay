@@ -5,11 +5,27 @@
 
 cmake_minimum_required(VERSION 3.4.1)
 
+# configure import libs
+set(distribution_DIR ${CMAKE_SOURCE_DIR}/../distribution)
+
 # Creates and names a library, sets it as either STATIC
 # or SHARED, and provides the relative paths to its source code.
 # You can define multiple libraries, and CMake builds them for you.
 # Gradle automatically packages shared libraries with your APK.
-set(distribution_DIR ${CMAKE_SOURCE_DIR}/../distribution)
+
+file(GLOB SOURCES
+    "src/main/cpp/*.cpp"
+    "src/main/cpp/observer/*.cpp"
+    "src/main/cpp/thread/*.cpp"
+    "src/main/cpp/decode/*.cpp"
+    "src/main/cpp/data/*.cpp"
+    "src/main/cpp/demux/*.cpp"
+    "src/main/cpp/log/*.cpp"
+    "src/main/cpp/videoviewer/*.cpp"
+    "src/main/cpp/audio/*.cpp"
+    "src/main/cpp/player/*.cpp"
+
+    )
 
 add_library( # Sets the name of the library.
              native-lib
@@ -18,7 +34,7 @@ add_library( # Sets the name of the library.
              SHARED
 
              # Provides a relative path to your source file(s).
-             src/main/cpp/native-lib.cpp )
+             ${SOURCES} )
 
 #设置ffmpeg头文件路径
 #方式一:
@@ -41,9 +57,6 @@ set_target_properties(avutil PROPERTIES IMPORTED_LOCATION ${distribution_DIR}/li
 set_target_properties(swresample PROPERTIES IMPORTED_LOCATION ${distribution_DIR}/libs/${ANDROID_ABI}/libswresample.so)
 set_target_properties(swscale PROPERTIES IMPORTED_LOCATION ${distribution_DIR}/libs/${ANDROID_ABI}/libswscale.so)
 
-
-
-
 # Searches for a specified prebuilt library and stores the path as a
 # variable. Because CMake includes system libraries in the search path by
 # default, you only need to specify the name of the public NDK library
@@ -55,11 +68,6 @@ find_library( # Sets the name of the path variable.
               # Specifies the name of the NDK library that
               # you want CMake to locate.
               log)
-find_library( # Sets the name of the path variable.
-              android-lib
-              # Specifies the name of the NDK library that
-              # you want CMake to locate.
-              android)
 
 # Specifies libraries CMake should link to your target library. You
 # can link multiple libraries, such as libraries you define in this
@@ -67,17 +75,12 @@ find_library( # Sets the name of the path variable.
 
 target_link_libraries( # Specifies the target library.
                        native-lib
-
-                       avcodec
-                       avfilter
-                       avformat
-                       avutil
-                       swresample
-                       swscale
+                       avcodec avfilter avformat avutil swresample swscale
                        # Links the target library to the log library
                        # included in the NDK.
-                       ${log-lib}
-                       ${android-lib})
+                       android
+                       OpenSLES GLESv2 EGL
+                       ${log-lib})
 
 #将.so文件打包到apk中
 add_custom_command(TARGET native-lib PRE_BUILD
