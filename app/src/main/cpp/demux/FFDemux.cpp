@@ -106,7 +106,6 @@ XData FFDemux::Read() {
 }
 
 FFDemux::FFDemux() {
-    static bool isFirst = true;
     if (isFirst) {
         isFirst = false;
         //ffmpeg 注册所有封装器

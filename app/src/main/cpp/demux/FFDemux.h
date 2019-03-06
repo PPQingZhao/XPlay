@@ -25,6 +25,7 @@ public:
     FFDemux();
 
 private:
+    bool isFirst = true;
     AVFormatContext *avFormatContext = NULL;
     int audioStream = 1;  //音频流索引
     int videoStream = 0;  //视频流索引

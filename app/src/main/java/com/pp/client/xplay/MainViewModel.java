@@ -9,7 +9,10 @@ import android.widget.Toast;
 
 import com.blankj.utilcode.util.PermissionUtils;
 import com.pp.client.xplay.callback.UICallback;
-import com.pp.client.xplay.jni.Jni;
+import com.pp.client.xplay.videoviewer.PPPlayViewModel;
+
+import java.util.HashSet;
+import java.util.Set;
 
 public class MainViewModel {
 
@@ -30,7 +33,7 @@ public class MainViewModel {
         }
         obserPlaying.set(true);
         String sdcard_path = Environment.getExternalStorageDirectory().getAbsolutePath();
-        Jni.open(sdcard_path + "/ffmpeg/VID_20181015_164136.mp4");
+//        Jni.open(sdcard_path + "/ffmpeg/VID_20181015_164136.mp4");
 //        Jni.open("/mnt/sdcard/VID_20180214_164359.mp4");
     }
 
@@ -47,5 +50,11 @@ public class MainViewModel {
 
     public void onStopPlay() {
         Log.e(TAG, "=======>>onStop ");
+    }
+
+    Set<PPPlayViewModel> videoModels = new HashSet<PPPlayViewModel>();
+
+    public void addVideoModel(PPPlayViewModel viewModel) {
+        videoModels.add(viewModel);
     }
 }

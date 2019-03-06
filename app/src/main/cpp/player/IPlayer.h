@@ -7,6 +7,7 @@
 
 
 #include "../thread/XThread.h"
+#include "../data/XParameter.h"
 
 class IDemux;
 
@@ -18,12 +19,16 @@ class IVideoView;
 
 class IAudioPlay;
 
+
 class IPlayer : public XThread {
 public:
-    static IPlayer *Get(unsigned char index);
+    static IPlayer *Get(unsigned char index = 0);
 
     virtual bool Open(const char *path);
+
     virtual bool Start();
+
+    virtual bool InitView(void *win);
 
     IDemux *demux = 0;
     IDecode *vDecode = 0;
@@ -31,10 +36,11 @@ public:
     IResample *resample = 0;
     IVideoView *videoView = 0;
     IAudioPlay *audioPlay = 0;
-
+    //音频输出参数配置
+    XParameter aOutPara;
 protected:
 
-    IPlayer();
+    IPlayer() {};
 };
 
 

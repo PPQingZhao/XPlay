@@ -5,9 +5,8 @@ public class Jni {
         System.loadLibrary("native-lib");
     }
 
-    public native static String stringFromJNI();
 
-    public native static void open(String url);
+    public native static void open(long surface_id, String url);
 
-    public native static void initOpenGl(Object holder);
+    public native static long initOpenGl(Object holder);
 }

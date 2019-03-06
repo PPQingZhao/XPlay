@@ -40,6 +40,7 @@ public class MainActivity extends AppCompatActivity implements UICallback {
             ((ViewGroup) ppPlay.getParent()).removeView(ppPlay);
         }
         ppPlay.setSelected(true);
+        mViewModel.addVideoModel(ppPlay.getViewModel());
         mainBinding.videoviewer.addView(ppPlay, new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
 
         ppPlay2 = new PPPlay(getBaseContext());
@@ -47,6 +48,7 @@ public class MainActivity extends AppCompatActivity implements UICallback {
             ((ViewGroup) ppPlay2.getParent()).removeView(ppPlay);
         }
         ppPlay2.setSelected(true);
+        mViewModel.addVideoModel(ppPlay2.getViewModel());
         mainBinding.videoviewer2.addView(ppPlay2, new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
     }
 

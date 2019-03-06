@@ -99,7 +99,7 @@ XData FFDecode::ReceivedFrame() {
                  avFrame->linesize[2] * avFrame->height;
         d.width = avFrame->width;
         d.height = avFrame->height;
-        XLOGE("data format is %d", avFrame->format);
+//        XLOGE("data format is %d", avFrame->format);
     } else if (avCodecContext->codec_type == AVMEDIA_TYPE_AUDIO) { //音频
         //样本字节数*单通道样本数*通道数
         d.size =

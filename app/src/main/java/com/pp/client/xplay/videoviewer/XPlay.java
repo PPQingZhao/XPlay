@@ -12,14 +12,16 @@ import com.pp.client.xplay.jni.Jni;
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
-/**
- * Created by qing on 18-10-16.
- */
-
-public class XPlay extends GLSurfaceView implements Runnable,SurfaceHolder.Callback{
+public class XPlay extends GLSurfaceView implements SurfaceHolder.Callback {
 
     private static final String TAG = XPlay.class.getSimpleName();
     private GLRenderer mGLRender;
+
+    public long getSurface_id() {
+        return surface_id;
+    }
+
+    private long surface_id = -1;
 
     public XPlay(Context context) {
         this(context, null);
@@ -33,10 +35,13 @@ public class XPlay extends GLSurfaceView implements Runnable,SurfaceHolder.Callb
 
     @Override
     public void surfaceCreated(SurfaceHolder holder) {
-        Log.e(TAG,"=============>>11  surfaceCreated");
+        Log.e(TAG, "=============>>11  surfaceCreated");
+        Log.e(TAG, "=============>>getSurface: " + holder.getSurface());
         //初始化opengl
-        Jni.initOpenGl(holder.getSurface());
-        new Thread(XPlay.this).start();
+        surface_id = Jni.initOpenGl(holder.getSurface());
+        if (null != surfaceHolderCallback) {
+            surfaceHolderCallback.surfaceCreated(surface_id);
+        }
     }
 
     @Override
@@ -47,19 +52,11 @@ public class XPlay extends GLSurfaceView implements Runnable,SurfaceHolder.Callb
     public void surfaceDestroyed(SurfaceHolder holder) {
     }
 
-    @Override
-    public void run() {
-        Log.e(TAG, "===============>> getHolder().getSurface(): " +getHolder().getSurface());
-    }
-
     private String SDCARDPATH = Environment.getExternalStorageDirectory().getAbsolutePath();
 
     class GLRenderer implements Renderer {
         @Override
         public void onSurfaceCreated(GL10 gl, EGLConfig config) {
-            Log.e(TAG,"=============>>  onSurfaceCreated");
-            //初始化opengl
-//            Jni.initOpenGl(getHolder().getSurface());
         }
 
         @Override
@@ -70,5 +67,15 @@ public class XPlay extends GLSurfaceView implements Runnable,SurfaceHolder.Callb
         public void onDrawFrame(GL10 gl) {
 
         }
+    }
+
+    private SurfaceHolderCallback surfaceHolderCallback;
+
+    public void setSurfaceHolderCallback(SurfaceHolderCallback surfaceHolderCallback) {
+        this.surfaceHolderCallback = surfaceHolderCallback;
+    }
+
+    interface SurfaceHolderCallback {
+        public void surfaceCreated(long surface_id);
     }
 }
