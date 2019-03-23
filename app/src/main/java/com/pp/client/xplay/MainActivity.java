@@ -29,7 +29,7 @@ public class MainActivity extends AppCompatActivity implements UICallback {
         super.onCreate(savedInstanceState);
         mainBinding = DataBindingUtil.setContentView(this, R.layout.activity_main);
         mViewModel = new MainViewModel(getBaseContext(), this);
-        mainBinding.setViewModle(mViewModel);
+        mainBinding.setViewModel(mViewModel);
         initView();
         initVideoViewer();
     }

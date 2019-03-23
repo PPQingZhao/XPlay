@@ -77,6 +77,12 @@ XParameter FFDemux::GetAudioParameter() {
     return xParameter;
 }
 
+//分数转浮点数
+static double r2d(AVRational rational) {
+    return rational.num == 0 | rational.den == 0 ? 0 : (double) rational.num /
+                                                       (double) rational.den;
+}
+
 //读取一帧数据，数据由调用者清理
 XData FFDemux::Read() {
     if (!avFormatContext)
@@ -101,6 +107,14 @@ XData FFDemux::Read() {
         av_packet_free(&avPacket);
         return XData();
     }
+
+    //转换pts
+    avPacket->pts = avPacket->pts *
+                    (1000 * r2d(avFormatContext->streams[avPacket->stream_index]->time_base));
+    avPacket->dts = avPacket->dts *
+                    (1000 * r2d(avFormatContext->streams[avPacket->stream_index]->time_base));
+    data.pts = (int) avPacket->pts;
+//    XLOGE("***********  data.pts: %ld", data.pts);
 //    XLOGE("=======>> size: %d  pts: %d ", avPacket->size, avPacket->pts);
     return data;
 }

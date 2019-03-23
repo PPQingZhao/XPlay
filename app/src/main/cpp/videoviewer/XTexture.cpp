@@ -11,6 +11,7 @@ class CXTexture : public XTexture {
 public:
     XShader shader;
     XTextureType textureType;
+    XEGL *xegl = 0;
 
     bool Init(void *win, XTextureType type) {
         this->textureType = type;
@@ -19,7 +20,9 @@ public:
             XLOGE("XTexture init failed!");
             return false;
         }
-        if (!XEGL::GetIntance()->Init(win)) {
+        if (!xegl)
+            xegl = XEGL::GetIntance();
+        if (!xegl->Init(win)) {
             XLOGE("XEGL::GetIntance()->Init(win) failed!");
             return false;
         }
@@ -40,7 +43,9 @@ public:
             shader.GetTexture(1, width / 2, height / 2, data[1], true); //uv
         }
         shader.Draw();
-        XEGL::GetIntance()->Draw();
+        if (xegl) {
+            xegl->Draw();
+        }
     }
 };
 

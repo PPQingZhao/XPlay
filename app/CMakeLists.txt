@@ -24,8 +24,8 @@ file(GLOB SOURCES
     "src/main/cpp/videoviewer/*.cpp"
     "src/main/cpp/audio/*.cpp"
     "src/main/cpp/player/*.cpp"
-    "src/main/cpp/builder/IPlayerBuilder.cpp"
-    "src/main/cpp/builder/FFPlayerBuilder.cpp"
+    "src/main/cpp/builder/*.cpp"
+    "src/main/cpp/proxy/*.cpp"
 
     )
 

@@ -24,6 +24,8 @@ JNI_VOID_RETURN JNI_FUNCTION(open)(JNI_DEFAULT_PARAM, jlong surface_id, jstring 
  */
 JNI_JLONG_RETURN JNI_FUNCTION(initOpenGl)(JNI_DEFAULT_PARAM, jobject holder);
 
+JNI_JSTRING_RETURN JNI_FUNCTION(getFFmpegInfo)(JNI_DEFAULT_PARAM);
+
 struct JNI_GLOBAL_INFO {
     JavaVM *vm;
 };

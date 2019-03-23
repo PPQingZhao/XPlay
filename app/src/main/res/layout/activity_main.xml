@@ -4,7 +4,7 @@
     <data>
 
         <variable
-            name="viewModle"
+            name="viewModel"
             type="com.pp.client.xplay.MainViewModel"></variable>
     </data>
 
@@ -13,11 +13,29 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
+        <ScrollView
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:paddingBottom="5dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/main_startplay">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:padding="5dp"
+                android:text="@{viewModel.obserFFmpegInfo}" />
+        </ScrollView>
+
         <FrameLayout
             android:id="@+id/videoviewer2"
             android:layout_width="0dp"
             android:layout_height="0dp"
             android:background="@android:color/black"
+            android:visibility="gone"
             app:layout_constraintDimensionRatio="16:9"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintRight_toRightOf="parent"
@@ -38,7 +56,7 @@
             android:id="@+id/main_startplay"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:onClickListener="@{()->viewModle.onStartPlay()}"
+            android:onClickListener="@{()->viewModel.onStartPlay()}"
             android:text="@string/start_play"
             android:textAllCaps="false"
             app:layout_constraintBottom_toBottomOf="parent"
@@ -51,7 +69,7 @@
             android:id="@+id/main_stopplay"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:onClickListener="@{()->viewModle.onStopPlay()}"
+            android:onClickListener="@{()->viewModel.onStopPlay()}"
             android:text="@string/stop_play"
             android:textAllCaps="false"
             app:layout_constraintBottom_toBottomOf="parent"

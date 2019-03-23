@@ -9,4 +9,6 @@ public class Jni {
     public native static void open(long surface_id, String url);
 
     public native static long initOpenGl(Object holder);
+
+    public native static String getFFmpegInfo();
 }

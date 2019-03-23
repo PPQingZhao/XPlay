@@ -70,6 +70,7 @@ public:
 };
 
 XEGL *XEGL::GetIntance() {
-    static CXEGL egl;
-    return &egl;
+//    static CXEGL egl;
+//    return &egl;
+    return new CXEGL();
 }

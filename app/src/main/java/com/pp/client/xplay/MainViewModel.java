@@ -9,6 +9,7 @@ import android.widget.Toast;
 
 import com.blankj.utilcode.util.PermissionUtils;
 import com.pp.client.xplay.callback.UICallback;
+import com.pp.client.xplay.jni.Jni;
 import com.pp.client.xplay.videoviewer.PPPlayViewModel;
 
 import java.util.HashSet;
@@ -20,10 +21,17 @@ public class MainViewModel {
     private final Context mContext;
     private final UICallback mUICallback;
     private ObservableField<Boolean> obserPlaying = new ObservableField<>(false);
+    public ObservableField<String> obserFFmpegInfo = new ObservableField<>("");
 
     public MainViewModel(Context context, UICallback uiCallback) {
         this.mContext = context;
         this.mUICallback = uiCallback;
+        init();
+    }
+
+    private void init() {
+        String fFmpegInfo = Jni.getFFmpegInfo();
+        obserFFmpegInfo.set(null == fFmpegInfo ? "" : fFmpegInfo);
     }
 
     public void startPlay() {
