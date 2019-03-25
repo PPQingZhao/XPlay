@@ -1,0 +1,17 @@
+1.解封装:
+  ① av_register_all()
+    注册所有的格式:解封装和加封装格式等等
+    也有相关方法单一注册的
+
+    avformat_network_init()
+    初始化网络模块
+  ② avformat_open_input(...)
+   打开一个文件并解析:视频流,音频流,参数,视频帧索引等
+   ***************
+   当索引没有在文件头当中,需要使用avformat_find_stream_info(...)查找文件格式和索引,
+   查找完之后调用av_find_best_stream(...)获取视频或音频索引
+   ***************
+    AVFormatContext:解封装上下文
+    AVStream : 流信息
+  ③ av_read_frame(...) 读取具体的数据包
+    AVPacket : 具体的数据包

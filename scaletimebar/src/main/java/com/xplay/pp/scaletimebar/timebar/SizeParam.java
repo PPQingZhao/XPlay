@@ -10,9 +10,9 @@ public class SizeParam {
     /*显示区域最多显示大刻度的个数*/
     private final int disPlayLargeCount;
 
-    public SizeParam(int largeValue, int smallValue, int decimal, int disPlayLargeCount) {
+    public SizeParam(int largeValue, int unitValue, int decimal, int disPlayLargeCount) {
         this.largeValue = largeValue;
-        this.unitValue = smallValue;
+        this.unitValue = unitValue;
         this.decimal = decimal;
         this.disPlayLargeCount = disPlayLargeCount;
     }

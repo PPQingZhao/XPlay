@@ -10,12 +10,10 @@ import android.support.annotation.Nullable;
 import android.text.TextUtils;
 import android.util.AttributeSet;
 import android.util.DisplayMetrics;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.ViewTreeObserver;
 import android.widget.Scroller;
 
 import java.text.SimpleDateFormat;
@@ -39,6 +37,7 @@ public class ScaleTimeBar extends View {
     private int layout_width;
     private int layout_height;
     private final List<SmallTime> smallTimeList = new ArrayList<>();
+    private boolean drawDiving = false;
 
     public ScaleTimeBar(Context context) {
         this(context, null);
@@ -85,36 +84,24 @@ public class ScaleTimeBar extends View {
         initScaleInfo(startTime, /*开始时间:分*/endTime/*结束时间:分*/);
     }
 
+    public void setModel(ScaleModel.UnitModel unitModle) {
+        mScaleModel.setSizeParam(unitModle);
+        calcPixelsPerSecond();
+        updateCoursePosition();
+        invalidate();
+    }
+
     private void scaleView(float scaleFactor) {
         int scaleWidth = (int) (getWidth() * scaleFactor);
         int scaleScrollX = (int) (getScrollX() * scaleFactor);
-        Log.e("TAG", "**************scaleWidth:  " + scaleWidth);
-        Log.e("TAG", "**************UNITVALUE_1_HOUR:  " + mScaleModel.getWidthBySizeParm(ScaleModel.UNITVALUE_1_HOUR));
-        Log.e("TAG", "**************UNITVALUE_30_MIN:  " + mScaleModel.getWidthBySizeParm(ScaleModel.UNITVALUE_30_MIN));
-        Log.e("TAG", "**************UNITVALUE_10_MIN:  " + mScaleModel.getWidthBySizeParm(ScaleModel.UNITVALUE_10_MIN));
-        Log.e("TAG", "**************UNITVALUE_5_MIN:  " + mScaleModel.getWidthBySizeParm(ScaleModel.UNITVALUE_5_MIN));
-        Log.e("TAG", "**************UNITVALUE_1_MIN:  " + mScaleModel.getWidthBySizeParm(ScaleModel.UNITVALUE_1_MIN));
-        if (mScaleModel.getWidthBySizeParm(ScaleModel.UNITVALUE_1_HOUR) <= scaleWidth
-                && scaleWidth < mScaleModel.getWidthBySizeParm(ScaleModel.UNITVALUE_30_MIN)) {
-            mScaleModel.setSizeParam(ScaleModel.UNITVALUE_1_HOUR);
-        } else if (mScaleModel.getWidthBySizeParm(ScaleModel.UNITVALUE_30_MIN) <= scaleWidth
-                && scaleWidth < mScaleModel.getWidthBySizeParm(ScaleModel.UNITVALUE_10_MIN)) {
-            mScaleModel.setSizeParam(ScaleModel.UNITVALUE_30_MIN);
-        } else if (mScaleModel.getWidthBySizeParm(ScaleModel.UNITVALUE_10_MIN) <= scaleWidth
-                && scaleWidth < mScaleModel.getWidthBySizeParm(ScaleModel.UNITVALUE_5_MIN)) {
-            mScaleModel.setSizeParam(ScaleModel.UNITVALUE_10_MIN);
-        } else if (mScaleModel.getWidthBySizeParm(ScaleModel.UNITVALUE_5_MIN) <= scaleWidth
-                && scaleWidth < mScaleModel.getWidthBySizeParm(ScaleModel.UNITVALUE_1_MIN)) {
-            mScaleModel.setSizeParam(ScaleModel.UNITVALUE_5_MIN);
-        } else if (mScaleModel.getWidthBySizeParm(ScaleModel.UNITVALUE_1_MIN) < scaleWidth) {
-            mScaleModel.setSizeParam(ScaleModel.UNITVALUE_1_MIN);
-        } else {
-            return;
+        if (mScaleModel.changeSize(scaleWidth)) {
+            calcPixelsPerSecond();
+            updateCoursePosition();
+            ViewGroup.LayoutParams layoutParams = getLayoutParams();
+            layoutParams.width = scaleWidth;
+            setLayoutParams(layoutParams);
+            scrollTo(scaleScrollX, 0);
         }
-        ViewGroup.LayoutParams layoutParams = getLayoutParams();
-        layoutParams.width = scaleWidth;
-        setLayoutParams(layoutParams);
-        scrollTo(scaleScrollX, 0);
     }
 
     ScaleGestureDetector.OnScaleGestureListener onScaleGestureListener = new ScaleGestureDetector.OnScaleGestureListener() {
@@ -148,22 +135,10 @@ public class ScaleTimeBar extends View {
         //设置最大值
         mScaleModel.setEndValue(endTime);
         //计算刻度集
-        mScaleModel.setSizeParam(ScaleModel.UNITVALUE_5_MIN);
+        mScaleModel.setSizeParam(ScaleModel.UnitModel.UNITVALUE_5_MIN);
         mCourse = new Course();
         mCourse.setPosition(0);
         zoomModelCourseTime = mScaleModel.getSartValue();
-        int measureSpec = MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED);
-        measure(measureSpec, measureSpec);
-        getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
-            @Override
-            public void onGlobalLayout() {
-                mScaleModel.setDisPlayWidth(getWidth());
-                ViewGroup.LayoutParams layoutParams = getLayoutParams();
-                layoutParams.width = mScaleModel.getScaleWith();
-                setLayoutParams(layoutParams);
-                getViewTreeObserver().removeOnGlobalLayoutListener(this);
-            }
-        });
     }
 
     public void setScaleStartValue(long startValue) {
@@ -172,6 +147,17 @@ public class ScaleTimeBar extends View {
 
     public void setScaleEndValue(long endValue) {
         mScaleModel.setEndValue(endValue);
+    }
+
+    public void setCurrTime(long time) {
+        if (time < mScaleModel.getSartValue())
+            return;
+        if (time > mScaleModel.getEndValue())
+            return;
+        zoomModelCourseTime = time;
+        scrollByTimeCalibration();
+        updateCoursePosition();
+        postInvalidate();
     }
 
     public void setSmallTimeList(List<SmallTime> list) {
@@ -202,11 +188,12 @@ public class ScaleTimeBar extends View {
                 widthMeasureSpec),
                 getDefautSize(layout_height <= 0 ? getSuggestedMinimumHeight() : layout_height,
                         heightMeasureSpec));
-    }
-
-    @Override
-    protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
-        super.onLayout(changed, left, top, right, bottom);
+        if (mScaleModel.getDisPlayWidth() == 0) {
+            mScaleModel.setDisPlayWidth(getMeasuredWidth());
+            ViewGroup.LayoutParams layoutParams = getLayoutParams();
+            layoutParams.width = mScaleModel.getScaleWith();
+            setLayoutParams(layoutParams);
+        }
     }
 
     @Override
@@ -214,8 +201,11 @@ public class ScaleTimeBar extends View {
         super.onSizeChanged(w, h, oldw, oldh);
         //　尺寸发生改变，重新计算单位刻度对应屏幕像素
         calcPixelsPerSecond();
-        if (motionModel == MotionModel.Zoom) { //如果是缩放模式，需要校准刻度尺
-            scrollByZoomModel();
+        if (motionModel != MotionModel.Move) { //校准刻度尺
+            scrollByTimeCalibration();
+            updateCoursePosition();
+        } else {
+            updateCoursePosition();
         }
     }
 
@@ -249,12 +239,12 @@ public class ScaleTimeBar extends View {
         if (null == mScaleModel) return;
 
         Paint paint = new Paint();
-        paint.setStrokeWidth(5);
         paint.setAntiAlias(true);
         //绘制刻度的开始位置
         int timebarStatX = getTimebarStatX();
         //重置画笔颜色
         paint.setColor(Color.BLACK);
+        paint.setStrokeWidth(5);
         //绘制顶部横线
         canvas.drawLine(0 - 100,
                 0,
@@ -269,14 +259,16 @@ public class ScaleTimeBar extends View {
         paint.setStrokeWidth(1);
         //高的1/3
         int height_1_3 = getHeight() / 3;
-        //绘制1/3处横线
-        canvas.drawLine(0,
-                height_1_3,
-                getWidth() + calcTimebarWidth(),
-                height_1_3, paint);
+        if (drawDiving) {
+            //绘制1/3处横线
+            canvas.drawLine(0,
+                    height_1_3,
+                    getWidth() + calcTimebarWidth(),
+                    height_1_3, paint);
+        }
         int timeBarStopY = height_1_3 * 2;
         //绘制时间轴横线
-        canvas.drawLine(0,
+        canvas.drawLine(timebarStatX,
                 timeBarStopY,
                 getWidth() + calcTimebarWidth(),
                 timeBarStopY, paint);
@@ -293,7 +285,7 @@ public class ScaleTimeBar extends View {
             if (null == scaler) continue;
             startX = timebarStatX + pixelsPerScaler * scaler.getPosition();
             stopY = timeBarStopY;
-            // 只绘制控件width区域
+            // 只绘制控件width区域 (显示区域)
             if (startX < scrollX + 0) {
                 continue;
             }
@@ -335,17 +327,24 @@ public class ScaleTimeBar extends View {
 
 
         }
-
+        long startValue = 0;
+        long endValue = 0;
         //绘制颜色刻度
         for (SmallTime smallTime : smallTimeList) {
             if (null == smallTime) continue;
-            paint.setColor(smallTime.getTimeColor());
+            startValue = smallTime.getStartValue() < mScaleModel.getSartValue() ?
+                    mScaleModel.getSartValue() : smallTime.getStartValue();
+            endValue = smallTime.getEndValue() > mScaleModel.getEndValue() ?
+                    mScaleModel.getEndValue() : smallTime.getEndValue();
+
             //计算开始绘制位置
-            startX = timebarStatX + calcPixelsByTime(smallTime.getStartValue() - mScaleModel.getSartValue());
+            startX = timebarStatX + calcPixelsByTime(startValue - mScaleModel.getSartValue());
             startY = timeBarStopY;
             //计算结束绘制位置
-            stopX = timebarStatX + calcPixelsByTime(smallTime.getEndValue() - mScaleModel.getSartValue());
-            stopY = getHeight();
+            stopX = timebarStatX + calcPixelsByTime(endValue - mScaleModel.getSartValue());
+            stopY = getHeight()-5;
+
+            paint.setColor(smallTime.getTimeColor());
             canvas.drawRect(startX, startY, stopX, stopY, paint);
         }
 
@@ -392,11 +391,26 @@ public class ScaleTimeBar extends View {
         }
     }
 
-    private void scrollByZoomModel() {
+    /**
+     * 校准时间
+     */
+    private void scrollByTimeCalibration() {
         long dTime = zoomModelCourseTime - calcCourseTimeMills();
         if (dTime != 0) {  // 用于处理缩放时 时间轴变化bug
             scrollBy(calcPixelsByTime(dTime), 0);
         }
+    }
+
+    public long getTime() {
+        return calcCourseTimeMills();
+    }
+
+    public long getStartValue() {
+        return mScaleModel.getSartValue();
+    }
+
+    public long getEndValue() {
+        return mScaleModel.getEndValue();
     }
 
     /**
@@ -416,7 +430,7 @@ public class ScaleTimeBar extends View {
     }
 
     int lastX = 0;
-    MotionModel motionModel;
+    MotionModel motionModel = MotionModel.None;
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
@@ -513,8 +527,7 @@ public class ScaleTimeBar extends View {
      * @return
      */
     private int calcMaxScaleScrollX() {
-//        return calcTimebarWidth() - (getWidth() - getTimebarStatX());
-        return calcTimebarWidth();
+        return (int) calcTimebarWidth();
     }
 
     /**
@@ -522,8 +535,8 @@ public class ScaleTimeBar extends View {
      *
      * @return
      */
-    private int calcTimebarWidth() {
-        return (int) (pixelsPerScaler * mScaleModel.getScaleCount());
+    private float calcTimebarWidth() {
+        return pixelsPerScaler * mScaleModel.getScaleCount();
     }
 
     private OnBarMoveListener onBarMoveListener;

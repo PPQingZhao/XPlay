@@ -1,7 +1,5 @@
 package com.xplay.pp.scaletimebar.timebar;
 
-import android.util.Log;
-
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -9,17 +7,15 @@ import java.util.List;
 
 public class ScaleModel {
 
-    /*模式一：最小刻度1分钟,一个大刻度５分钟*/
-    public static final int UNITVALUE_1_MIN = 0;
-    /*模式二：最小刻度5分钟,一个大刻度10分钟*/
-    public static final int UNITVALUE_5_MIN = 1;
-    /*模式三：最小刻度10分钟,一个大刻度30分钟*/
-    public static final int UNITVALUE_10_MIN = 2;
-    /*模式四：最小刻度30分钟,一个大刻度1小时*/
-    public static final int UNITVALUE_30_MIN = 3;
-    /*模式五：最小刻度1小时,一个大刻度２小时*/
-    public static final int UNITVALUE_1_HOUR = 4;
-    private final HashMap<Integer, SizeParam> sizeParamMap = new HashMap<>();
+    public enum UnitModel {
+        UNITVALUE_1_MIN,                /*模式一：最小刻度1分钟,一个大刻度５分钟*/
+        UNITVALUE_5_MIN,                /*模式二：最小刻度5分钟,一个大刻度10分钟*/
+        UNITVALUE_10_MIN,               /*模式三：最小刻度10分钟,一个大刻度30分钟*/
+        UNITVALUE_30_MIN,               /*模式四：最小刻度30分钟,一个大刻度1小时*/
+        UNITVALUE_1_HOUR;               /*模式五：最小刻度1小时,一个大刻度２小时*/
+    }
+
+    private final HashMap<UnitModel, SizeParam> sizeParamMap = new HashMap<>();
     private final List<Scaler> scaleList = new ArrayList<>();
     private long sartValue;
     private long endValue;
@@ -31,85 +27,60 @@ public class ScaleModel {
     public ScaleModel() {
         SizeParam model = null;
         /*模式一：最小刻度1分钟,一个大刻度５分钟*/
-        model = new SizeParam(5, 1, 60 * 1000, 10);
-        sizeParamMap.put(UNITVALUE_1_MIN, model);
+        model = new SizeParam(5, 1, 60 * 1000, 20);
+        sizeParamMap.put(UnitModel.UNITVALUE_1_MIN, model);
         /*模式二：最小刻度5分钟,一个大刻度10分钟*/
-        model = new SizeParam(10, 5, 60 * 1000, 10);
-        sizeParamMap.put(UNITVALUE_5_MIN, model);
+        model = new SizeParam(10, 5, 60 * 1000, 18);
+        sizeParamMap.put(UnitModel.UNITVALUE_5_MIN, model);
         /*模式三：最小刻度10分钟,一个大刻度30分钟*/
-        model = new SizeParam(30, 10, 60 * 1000, 10);
-        sizeParamMap.put(UNITVALUE_10_MIN, model);
+        model = new SizeParam(30, 10, 60 * 1000, 16);
+        sizeParamMap.put(UnitModel.UNITVALUE_10_MIN, model);
         /*模式四：最小刻度30分钟,一个大刻度1小时*/
-        model = new SizeParam(60, 30, 60 * 1000, 10);
-        sizeParamMap.put(UNITVALUE_30_MIN, model);
+        model = new SizeParam(60, 30, 60 * 1000, 14);
+        sizeParamMap.put(UnitModel.UNITVALUE_30_MIN, model);
         /*模式五：最小刻度1小时,一个大刻度２小时*/
-        model = new SizeParam(2 * 60, 60, 60 * 1000, 10);
-        sizeParamMap.put(UNITVALUE_1_HOUR, model);
+        model = new SizeParam(2 * 60, 60, 60 * 1000, 12);
+        sizeParamMap.put(UnitModel.UNITVALUE_1_HOUR, model);
 
         //设置默认模式为　　模式二：最小刻度5分钟,一个大刻度10分钟
-        currSizeParam = sizeParamMap.get(UNITVALUE_5_MIN);
+        currSizeParam = sizeParamMap.get(UnitModel.UNITVALUE_5_MIN);
     }
 
-    public void setSizeParam(int unitModle) {
+    public void setSizeParam(UnitModel unitModle) {
         SizeParam model = sizeParamMap.get(unitModle);
         if (null == model) {
             return;
         }
         currSizeParam = model;
+        setUpScaleList();
+    }
+
+    private void setUpScaleList() {
         scaleList.clear();
         Scaler scaler = null;
-        for (int i = 0; i < (getEndValue() - getSartValue()) / (model.getUnitValue() * model.getDecimal()) + 1/*补上一个刻度*/; i++) {
+        for (int i = 0; i < ((getEndValue()) - getSartValue()) * 1.0f / (getUnitValue() * getDecimal()); i++) {
             scaler = new Scaler();
             //是否是关键刻度
-            scaler.setKeyScaler(i % (model.getLargeValue() / model.getUnitValue()) == 0);
+            scaler.setKeyScaler(i % (getLargeValue() / getUnitValue()) == 0);
             //当前刻度位置(即第几个刻度)
             scaler.setPosition(i);
             scaleList.add(scaler);
-           /* if (i % model.getUnitValue() == 0) {
-                scaler = new Scaler();
-                //是否是关键刻度
-                scaler.setKeyScaler(i % model.getLargeValue() == 0);
-                //当前刻度位置(即第几个刻度)
-                scaler.setPosition(i / model.getUnitValue());
-                scaleList.add(scaler);
-            }*/
-        }
-        Log.e("TAG", "***************scaleList Size:" + scaleList.size());
-    }
-
-    public void changeSize(int scaleWidth) {
-        //缩放后的宽度小于显示宽度,不做缩放处理
-        if (getWidthBySizeParm(UNITVALUE_1_MIN) <= scaleWidth && scaleWidth < getWidthBySizeParm(UNITVALUE_5_MIN)) {
-            setSizeParam(UNITVALUE_1_MIN);
-        } else if (getWidthBySizeParm(UNITVALUE_5_MIN) <= scaleWidth && scaleWidth < getWidthBySizeParm(UNITVALUE_10_MIN)) {
-            setSizeParam(UNITVALUE_5_MIN);
-        } else if (getWidthBySizeParm(UNITVALUE_10_MIN) <= scaleWidth && scaleWidth < getWidthBySizeParm(UNITVALUE_30_MIN)) {
-            setSizeParam(UNITVALUE_10_MIN);
-        } else if (getWidthBySizeParm(UNITVALUE_30_MIN) <= scaleWidth && scaleWidth < getWidthBySizeParm(UNITVALUE_1_HOUR)) {
-            setSizeParam(UNITVALUE_1_HOUR);
         }
     }
 
-    public int getWidthBySizeParm(int mapKey) {
-        return getWidthBySizeParm(sizeParamMap.get(mapKey));
+    public int getWidthBySizeParm(UnitModel unitModel) {
+        return getWidthBySizeParm(sizeParamMap.get(unitModel));
     }
 
     public int getWidthBySizeParm(SizeParam sizeParam) {
         if (null == sizeParam) return 0;
         // 当前模式下有几个刻度(small)
         int scaleCount = (int) ((getEndValue() - getSartValue()) / (sizeParam.getDecimal() * sizeParam.getUnitValue()));
-        return (int) (scaleCount * getPixelsPerScaler());
+        return (int) (scaleCount * getPixelsPerScaler(sizeParam));
     }
 
     public int getScaleWith() {
         return getWidthBySizeParm(currSizeParam);
-    }
-
-    public float getPixelsPerScaler1() {
-        //计算一个大刻度里面有多少个小刻度
-        int smallInLargeCount = getLargeScale() / getUnitValue();
-        //一个屏幕分布getDisPlayCount()个大刻度,则小刻度有 smallInLargeCount*getDisPlayCount() 个,计算每个小刻度对应的屏幕像素
-        return disPlayWidth * 1.0f / (smallInLargeCount * getDisPlayCount());
     }
 
     public List<Scaler> getScaleList() {
@@ -120,7 +91,7 @@ public class ScaleModel {
         return null == currSizeParam ? 0 : currSizeParam.getUnitValue();
     }
 
-    public int getLargeScale() {
+    public int getLargeValue() {
         return null == currSizeParam ? 0 : currSizeParam.getLargeValue();
     }
 
@@ -130,8 +101,9 @@ public class ScaleModel {
 
     public void setEndValue(long endValue) {
         if (null != currSizeParam) {
-            this.endValue = endValue + currSizeParam.getUnitValue() * currSizeParam.getDecimal()/*补上１个刻度*/;
+            this.endValue = endValue /*+ currSizeParam.getUnitValue() * currSizeParam.getDecimal()*//*补上１个刻度*/;
         }
+        setUpScaleList();
     }
 
     public long getSartValue() {
@@ -146,10 +118,10 @@ public class ScaleModel {
         return null == currSizeParam ? 0 : currSizeParam.getDecimal();
     }
 
-    public long getScaleCount() {
-        long scaleCount = 0;
+    public float getScaleCount() {
+        float scaleCount = 0;
         if (null != currSizeParam) {
-            scaleCount = (getEndValue() - getSartValue()) / (currSizeParam.getDecimal() * currSizeParam.getUnitValue());
+            scaleCount = (getEndValue() - getSartValue()) * 1.f / (currSizeParam.getDecimal() * currSizeParam.getUnitValue());
         }
         return scaleCount;
     }
@@ -158,8 +130,11 @@ public class ScaleModel {
         this.disPlayWidth = disPlayWidth;
     }
 
-    public float getPixelsPerScaler() {
-        SizeParam sizeParam = sizeParamMap.get(UNITVALUE_1_HOUR);
+    public int getDisPlayWidth() {
+        return disPlayWidth;
+    }
+
+    public float getPixelsPerScaler(SizeParam sizeParam) {
         return disPlayWidth * 1.0f / (sizeParam.getLargeValue() / sizeParam.getUnitValue() * getDisPlayCount());
     }
 
@@ -179,5 +154,27 @@ public class ScaleModel {
             e.printStackTrace();
         }
         return null;
+    }
+
+    public boolean changeSize(int scaleWidth) {
+        if (getWidthBySizeParm(UnitModel.UNITVALUE_1_HOUR) <= scaleWidth
+                && scaleWidth < getWidthBySizeParm(UnitModel.UNITVALUE_30_MIN)) {
+            setSizeParam(UnitModel.UNITVALUE_1_HOUR);
+        } else if (getWidthBySizeParm(UnitModel.UNITVALUE_30_MIN) <= scaleWidth
+                && scaleWidth < getWidthBySizeParm(UnitModel.UNITVALUE_10_MIN)) {
+            setSizeParam(UnitModel.UNITVALUE_30_MIN);
+        } else if (getWidthBySizeParm(UnitModel.UNITVALUE_10_MIN) <= scaleWidth
+                && scaleWidth < getWidthBySizeParm(UnitModel.UNITVALUE_5_MIN)) {
+            setSizeParam(UnitModel.UNITVALUE_10_MIN);
+        } else if (getWidthBySizeParm(UnitModel.UNITVALUE_5_MIN) <= scaleWidth
+                && scaleWidth < getWidthBySizeParm(UnitModel.UNITVALUE_1_MIN)) {
+            setSizeParam(UnitModel.UNITVALUE_5_MIN);
+        } else if (getWidthBySizeParm(UnitModel.UNITVALUE_1_MIN) <= scaleWidth
+                && scaleWidth <= getWidthBySizeParm(UnitModel.UNITVALUE_1_MIN) * 3 / 2) {
+            setSizeParam(UnitModel.UNITVALUE_1_MIN);
+        } else {
+            return false;
+        }
+        return true;
     }
 }

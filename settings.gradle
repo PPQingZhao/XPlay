@@ -1,1 +1,1 @@
-include ':app', ':ppcamera'
+include ':app', ':ppcamera', ':scaletimebar'
