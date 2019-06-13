@@ -1,6 +1,4 @@
-//
-// Created by qing on 18-12-26.
-//
+
 
 #ifndef XPLAY_IOBSERVER_H
 #define XPLAY_IOBSERVER_H

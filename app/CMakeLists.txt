@@ -26,7 +26,6 @@ file(GLOB SOURCES
     "src/main/cpp/player/*.cpp"
     "src/main/cpp/builder/*.cpp"
     "src/main/cpp/proxy/*.cpp"
-
     )
 
 add_library( # Sets the name of the library.
@@ -77,9 +76,9 @@ find_library( # Sets the name of the path variable.
 
 target_link_libraries( # Specifies the target library.
                        native-lib
-                       avcodec avfilter avformat avutil swresample swscale
-                       # Links the target library to the log library
+                       # Links the target library to the library
                        # included in the NDK.
+                       avcodec avfilter avformat avutil swresample swscale
                        android
                        OpenSLES GLESv2 EGL
                        ${log-lib})

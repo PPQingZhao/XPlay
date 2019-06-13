@@ -5,9 +5,10 @@
 #ifndef XPLAY_XSHADER_H
 #define XPLAY_XSHADER_H
 
+#include <mutex>
+
 enum XShaderType {
     XSHADER_yuv420P = 0, // Y:u:v = 4:1:1
-    XSHADER_YUVJ420P = 12, // Y:u:v = 4:1:1
     XSHADER_NV12 = 25,   // Y:uv = 4:1
     XSHADER_NV21 = 26,   // Y:vu = 4:1
 };
@@ -15,7 +16,7 @@ enum XShaderType {
 class XShader {
 public:
     virtual bool Init(XShaderType type = XSHADER_yuv420P);
-
+    virtual void Close();
     /**
      *  获取材质并映射到内存
      * @param index　对应下标
@@ -37,6 +38,7 @@ protected:
     unsigned int fsh = 0;
     unsigned int program = 0;
     unsigned int texts[100] = {0};
+    std::mutex mux;
 };
 
 

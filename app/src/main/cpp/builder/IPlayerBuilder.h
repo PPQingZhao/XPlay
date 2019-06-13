@@ -5,11 +5,12 @@
 #ifndef XPLAY_IPLAYERBUILDER_H
 #define XPLAY_IPLAYERBUILDER_H
 
+#include <map>
 #include "../player/IPlayer.h"
 
 class IPlayerBuilder {
 public:
-    virtual IPlayer *BuilderPlayer(unsigned char index = 0);
+    virtual IPlayer *BuilderPlayer();
 
 protected:
     virtual IDemux *CreateDemux() = 0;
@@ -22,7 +23,8 @@ protected:
 
     virtual IAudioPlay *CreateAudioPlay() = 0;
 
-    virtual IPlayer *CreateIplayer(unsigned char index =0)= 0;
+    virtual IPlayer *CreateIplayer()= 0;
+
 };
 
 

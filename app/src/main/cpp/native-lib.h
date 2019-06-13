@@ -14,11 +14,13 @@
 #define JNI_JSTRING_RETURN      extern "C" JNIEXPORT jstring JNICALL
 #define JNI_JINT_RETURN         extern "C" JNIEXPORT jint JNICALL
 #define JNI_JLONG_RETURN        extern "C" JNIEXPORT jlong JNICALL
+#define JNI_JDOUBLE_RETURN        extern "C" JNIEXPORT jdouble JNICALL
+#define JNI_JBOOLEAN_RETURN        extern "C" JNIEXPORT jboolean JNICALL
 
 /**
  * 传入媒体文件路径,进行解码
  */
-JNI_VOID_RETURN JNI_FUNCTION(open)(JNI_DEFAULT_PARAM, jlong surface_id, jstring url_);
+JNI_JLONG_RETURN JNI_FUNCTION(open)(JNI_DEFAULT_PARAM, jlong surface_id, jstring url_,jboolean isHadDecode);
 /**
  * 初始化opengl,传入窗口句柄
  */

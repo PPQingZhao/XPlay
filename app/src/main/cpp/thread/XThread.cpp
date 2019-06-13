@@ -1,6 +1,4 @@
-//
-// Created by qing on 18-10-24.
-//
+
 
 #include "XThread.h"
 #include "../log/XLog.h"
@@ -12,9 +10,23 @@ void XSleep(int mis) {
     this_thread::sleep_for(du);
 }
 
+void XThread::SetPause(bool isP) {
+    XLOGE("@@@@@@@@@@@@@@@@ XThread::SetPause: %d", isP);
+    shouldPause = isP;
+    //等待100毫秒
+    for (int i = 0; i < 10; i++) {
+        //是否在暂停状态
+        if (isPausing == isP) {
+            break;
+        }
+        XSleep(10);
+    }
+}
+
 //启动线程
 bool XThread::Start() {
     isExit = false;
+    shouldPause = false;
     //启动线程
     thread th(&XThread::ThreadMain, this);
     //当前线程放弃对新建的线程的控制

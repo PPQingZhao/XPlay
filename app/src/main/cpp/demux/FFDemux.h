@@ -13,6 +13,10 @@ class FFDemux : public IDemux {
 public:
     //打开文件，或者流媒体　rmtp http rtsp
     virtual bool Open(const char *url);
+    virtual void Close();
+
+    //seek位置 pos 0.0-1.0
+    virtual bool Seek(double pos);
 
     //获取参数
     virtual XParameter GetVideoParameter();
@@ -27,6 +31,7 @@ public:
 private:
     bool isFirst = true;
     AVFormatContext *avFormatContext = NULL;
+    std::mutex mux;
     int audioStream = 1;  //音频流索引
     int videoStream = 0;  //视频流索引
 };

@@ -34,7 +34,11 @@ public class PPPlay extends FrameLayout implements VideoViewerHelper {
         mViewBing = DataBindingUtil.inflate(LayoutInflater.from(context), R.layout.layout_ppplay, this, true);
         mViewModel = new PPPlayViewModel(context, this);
         mViewBing.setViewModel(mViewModel);
-        setUpXPlay();
+        initView();
+    }
+
+    private void initView() {
+        mViewBing.videoviewerProgressbar.setOnSeekBarChangeListener(mViewModel.onSeekBarChangeListener);
     }
 
     public PPPlayViewModel getViewModel() {
@@ -49,25 +53,21 @@ public class PPPlay extends FrameLayout implements VideoViewerHelper {
         }
     }
 
-    private void setUpXPlay() {
+    private void setUpXPlay(XPlay.SurfaceHolderCallback callback) {
         xPlay = (xPlay == null) ? XplayPool.obtain(getContext()) : xPlay;
-        Log.e("TAG","********** XPlay: " + xPlay);
+        Log.e("TAG", "********** XPlay: " + xPlay);
+        xPlay.clear();
         if (xPlay.getParent() != null) {
             ((ViewGroup) xPlay.getParent()).removeView(xPlay);
         }
+        xPlay.setSurfaceHolderCallback(callback);
         FrameLayout.LayoutParams params = new LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
         addView(xPlay, 0, params);
     }
 
     @Override
-    public long getSurface_id() {
-        return null == xPlay ? -1 : xPlay.getSurface_id();
-    }
-
-    @Override
-    public long startRender() {
-//        setUpXPlay();
-        return getSurface_id();
+    public void startRender(XPlay.SurfaceHolderCallback callback) {
+        setUpXPlay(callback);
     }
 
     @Override

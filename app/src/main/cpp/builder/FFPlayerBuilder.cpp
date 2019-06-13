@@ -1,6 +1,4 @@
-//
-// Created by qing on 19-3-5.
-//
+
 
 #include "FFPlayerBuilder.h"
 #include "../demux/FFDemux.h"
@@ -38,6 +36,6 @@ IAudioPlay *FFPlayerBuilder::CreateAudioPlay() {
     return audioPlay;
 }
 
-IPlayer *FFPlayerBuilder::CreateIplayer(unsigned char index) {
-    return IPlayer::Get(index);
+IPlayer *FFPlayerBuilder::CreateIplayer() {
+    return IPlayer::Get();
 }

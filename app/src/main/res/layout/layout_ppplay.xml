@@ -12,17 +12,31 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
+        <!--android:src="@{viewModel.obserPause.get() ? @drawable/shape_play : @drawable/shape_pause}"-->
         <ImageView
-            android:onClickListener="@{()->viewModel.onPlay()}"
             android:layout_width="0dp"
             android:layout_height="0dp"
-            android:src="@drawable/shape_play"
+            android:Selected="@{viewModel.obserPause}"
+            android:onClickListener="@{()->viewModel.onPlayOrPause()}"
+            android:src="@drawable/selector_playorpause"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintDimensionRatio="1:1"
             app:layout_constraintHeight_percent="0.2"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintRight_toRightOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
+
+        <SeekBar
+            android:id="@+id/videoviewer_progressbar"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:Max="@{viewModel.obserSeekBarMax}"
+            android:Progress="@{viewModel.obserProgress}"
+            android:padding="3dp"
+            android:theme="@style/Base.Theme.AppCompat.Light"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent" />
 
     </android.support.constraint.ConstraintLayout>
 </layout>

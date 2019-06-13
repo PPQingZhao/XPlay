@@ -5,9 +5,11 @@ import android.databinding.DataBindingUtil;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
+import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
+import android.widget.Scroller;
 
 import com.pp.client.xplay.callback.UICallback;
 import com.pp.client.xplay.databinding.ActivityMainBinding;
@@ -34,6 +36,12 @@ public class MainActivity extends AppCompatActivity implements UICallback {
         initVideoViewer();
     }
 
+    @Override
+    protected void onStop() {
+        super.onStop();
+        mViewModel.onStop();
+    }
+
     private void initVideoViewer() {
         ppPlay = new PPPlay(getBaseContext());
         if (ppPlay.getParent() != null) {
@@ -53,6 +61,8 @@ public class MainActivity extends AppCompatActivity implements UICallback {
     }
 
     private void initView() {
+        mainBinding.mainTv.setScroller(new Scroller(this));
+        mainBinding.mainTv.setMovementMethod(ScrollingMovementMethod.getInstance());
     }
 
 
@@ -74,13 +84,12 @@ public class MainActivity extends AppCompatActivity implements UICallback {
                     permissionGranted(permission);
                 } else if (permission.shouldShowRequestPermissionRationale) { //至少有一个权限未授权 并且该权限未勾选不再询问
 //                    showDialogWithoutNeverAgain();
-                } else {    //至少有一个权限未授权 并且已勾选不再询问
+                } else {    // 至少有一个权限未授权 并且已勾选不再询问
 //                    showDialogWithSetting();
                 }
             }
         });
     }
-
 
     private void permissionGranted(Permission permission) {
         if (permission != null) {

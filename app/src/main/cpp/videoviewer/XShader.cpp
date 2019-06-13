@@ -1,6 +1,4 @@
-//
-// Created by qing on 19-1-5.
-//
+
 
 #include "XShader.h"
 #include "../log/XLog.h"
@@ -9,57 +7,90 @@
 #define GET_STR(x) #x
 static const char *vertexShader = GET_STR(
         attribute
-        vec4 aPosition;  //顶点坐标
+        vec4 aPosition; //顶点坐标
         attribute
-        vec2 aTexCoord;　//材质顶点坐标
-        varying vec2 vTexCoord;　　//输出的材质坐标
-        void main(){
-        vTexCoord = vec2(aTexCoord.x, 1.0-aTexCoord.y);
-        gl_Position = aPosition;
-}
+        vec2 aTexCoord; //材质顶点坐标
+        varying
+        vec2 vTexCoord;   //输出的材质坐标
+        void main() {
+            vTexCoord = vec2(aTexCoord.x, 1.0 - aTexCoord.y);
+            gl_Position = aPosition;
+        }
 );
 
-//片元着色器  软解码和部分x86硬解码　使用下面这种格式
-static const char *fragYUV_420P = GET_STR(
-        precision　mediump float; //精度
-        varying　vec2 vTexCoord;　//顶点着色器传递的坐标
-        uniform sampler2D yTexture;　　//输入的材质(不透明灰度，单像素)
-        uniform sampler2D uTexture;　
-        uniform sampler2D vTexture;
-        void main(){
-        vec3 yuv;
-        vec3 rgb;
-        yuv.r = texture2D(yTexture, vTexCoord).r;
-        yuv.g = texture2D(uTexture, vTexCoord).r - 0.5;
-        yuv.b = texture2D(vTexture, vTexCoord).r - 0.5;
-        //yuv 转换　rgb   一个矩阵 mat3
-        rgb = mat3(1.0, 1.0, 1.0,
-        0.0, -0.39465, 2.03211,
-        1.13983, -0.5806, 0.0)*yuv;
-        //输出像素颜色
-        gl_FragColor = vec4(rgb, 1.0);
-}
+//片元着色器,软解码和部分x86硬解码
+static const char *fragYUV_420P= GET_STR(
+        precision
+        mediump float;    //精度
+        varying
+        vec2 vTexCoord;     //顶点着色器传递的坐标
+        uniform
+        sampler2D yTexture; //输入的材质（不透明灰度，单像素）
+        uniform
+        sampler2D uTexture;
+        uniform
+        sampler2D vTexture;
+        void main() {
+            vec3 yuv;
+            vec3 rgb;
+            yuv.r = texture2D(yTexture, vTexCoord).r;
+            yuv.g = texture2D(uTexture, vTexCoord).r - 0.5;
+            yuv.b = texture2D(vTexture, vTexCoord).r - 0.5;
+            rgb = mat3(1.0, 1.0, 1.0,
+                       0.0, -0.39465, 2.03211,
+                       1.13983, -0.58060, 0.0) * yuv;
+            //输出像素颜色
+            gl_FragColor = vec4(rgb, 1.0);
+        }
 );
 
-//片元着色器  软解码和部分x86硬解码　使用下面这种格式
+//片元着色器,软解码和部分x86硬解码
 static const char *fragNV12 = GET_STR(
-        precision　mediump float; //精度
-        varying　vec2 vTexCoord;　//顶点着色器传递的坐标
-        uniform sampler2D yTexture;　　//输入的材质(不透明灰度，单像素)
-        uniform sampler2D uvTexture;　
-        void main(){
-        vec3 yuv;
-        vec3 rgb;
-        yuv.r = texture2D(yTexture, vTexCoord).r;
-        yuv.g = texture2D(uvTexture, vTexCoord).r - 0.5;
-        yuv.b = texture2D(uvTexture, vTexCoord).a - 0.5;
-        //yuv 转换　rgb   一个矩阵 mat3
-        rgb = mat3(1.0, 1.0, 1.0,
-        0.0, -0.39465, 2.03211,
-        1.13983, -0.5806, 0.0)*yuv;
-        //输出像素颜色
-        gl_FragColor = vec4(rgb, 1.0);
-}
+        precision
+        mediump float;    //精度
+        varying
+        vec2 vTexCoord;     //顶点着色器传递的坐标
+        uniform
+        sampler2D yTexture; //输入的材质（不透明灰度，单像素）
+        uniform
+        sampler2D uvTexture;
+        void main() {
+            vec3 yuv;
+            vec3 rgb;
+            yuv.r = texture2D(yTexture, vTexCoord).r;
+            yuv.g = texture2D(uvTexture, vTexCoord).r - 0.5;
+            yuv.b = texture2D(uvTexture, vTexCoord).a - 0.5;
+            rgb = mat3(1.0, 1.0, 1.0,
+                       0.0, -0.39465, 2.03211,
+                       1.13983, -0.58060, 0.0) * yuv;
+            //输出像素颜色
+            gl_FragColor = vec4(rgb, 1.0);
+        }
+);
+
+
+//片元着色器,软解码和部分x86硬解码
+static const char *fragNV21 = GET_STR(
+        precision
+        mediump float;    //精度
+        varying
+        vec2 vTexCoord;     //顶点着色器传递的坐标
+        uniform
+        sampler2D yTexture; //输入的材质（不透明灰度，单像素）
+        uniform
+        sampler2D uvTexture;
+        void main() {
+            vec3 yuv;
+            vec3 rgb;
+            yuv.r = texture2D(yTexture, vTexCoord).r;
+            yuv.g = texture2D(uvTexture, vTexCoord).a - 0.5;
+            yuv.b = texture2D(uvTexture, vTexCoord).r - 0.5;
+            rgb = mat3(1.0, 1.0, 1.0,
+                       0.0, -0.39465, 2.03211,
+                       1.13983, -0.58060, 0.0) * yuv;
+            //输出像素颜色
+            gl_FragColor = vec4(rgb, 1.0);
+        }
 );
 
 
@@ -90,33 +121,59 @@ static GLuint InitShader(const char *code, GLint type) {
     return sh;
 }
 
+void XShader::Close() {
+    mux.lock();
+    //释放shader
+    if (program) {
+        glDeleteProgram(program);
+    }
+    if (fsh) {
+        glDeleteShader(fsh);
+    }
+    if (vsh) {
+        glDeleteShader(vsh);
+    }
+    //释放材质
+    for (int i = 0; i < sizeof(texts) / sizeof(unsigned int); ++i) {
+        if (texts[i]) {
+            glDeleteTextures(1, &texts[i]);
+        }
+        texts[i] = 0;
+    }
+    mux.unlock();
+}
+
 bool XShader::Init(XShaderType type) {
     XLOGE("Enter XShader::Init()!");
+    Close();
     //shader　初始化
     //顶点坐标初始化
     vsh = InitShader(vertexShader, GL_VERTEX_SHADER);
     if (vsh == 0) {
+        mux.unlock();
         XLOGE("InitShader GL_VERTEX_SHADER failed!");
         return false;
     }
+    XLOGE("@@@@@@@@@@@@@@@@ type: %d", type);
     //片元初始化
     switch (type) {
         case XSHADER_yuv420P: //片元yuv420　shader初始化
-        case XSHADER_YUVJ420P:
             fsh = InitShader(fragYUV_420P, GL_FRAGMENT_SHADER);
             break;
         case XSHADER_NV12:  // NV12
             fsh = InitShader(fragNV12, GL_FRAGMENT_SHADER);
             break;
         case XSHADER_NV21:
-            fsh = InitShader(fragNV12, GL_FRAGMENT_SHADER);
+            fsh = InitShader(fragNV21, GL_FRAGMENT_SHADER);
             break;
         default:
+            mux.unlock();
             XLOGE("XShaderType format is error!");
             break;
     }
 
     if (fsh == 0) {
+        mux.unlock();
         XLOGE("InitShader GL_FRAGMENT_SHADER　failed!");
         return false;
     }
@@ -124,6 +181,7 @@ bool XShader::Init(XShaderType type) {
     //创建渲染程序
     program = glCreateProgram();
     if (program == 0) {
+        mux.unlock();
         XLOGE("===========>>glCreateProgram failed! ");
         return false;
     }
@@ -135,6 +193,7 @@ bool XShader::Init(XShaderType type) {
     GLint status;
     glGetProgramiv(program, GL_LINK_STATUS, &status);
     if (status != GL_TRUE) {
+        mux.unlock();
         XLOGE("=========>> glLinkProgram failed!");
         return false;
     }
@@ -172,7 +231,6 @@ bool XShader::Init(XShaderType type) {
     glUniform1i(glGetUniformLocation(program, "yTexture"), 0); //纹理层第一层
     switch (type) {
         case XSHADER_yuv420P:
-        case XSHADER_YUVJ420P:
             glUniform1i(glGetUniformLocation(program, "uTexture"), 1); //纹理层第二层
             glUniform1i(glGetUniformLocation(program, "vTexture"), 2); //纹理层第三层
             break;
@@ -181,7 +239,7 @@ bool XShader::Init(XShaderType type) {
             glUniform1i(glGetUniformLocation(program, "uvTexture"), 1); //纹理层第二层
             break;
     }
-
+    mux.unlock();
     XLOGE("InitShader success!");
     return true;
 }
@@ -190,6 +248,7 @@ void XShader::GetTexture(unsigned int index, int width, int height, unsigned cha
 //    XLOGE("XShader  width %d  height %d", width, height);
     //默认灰度图GL_LUMINANCE,透明通道GL_LUMINANCE_ALPHA
     unsigned int format = isa ? GL_LUMINANCE_ALPHA : GL_LUMINANCE;
+    mux.lock();
     if (texts[index] == 0) {
         glGenTextures(1, &texts[index]);//创建纹理
         //设置纹理属性
@@ -213,14 +272,18 @@ void XShader::GetTexture(unsigned int index, int width, int height, unsigned cha
     glBindTexture(GL_TEXTURE_2D, texts[index]);//绑定到创建的opengl纹理
     glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, format, GL_UNSIGNED_BYTE,
                     buf);//替换纹理内容
+    mux.unlock();
 }
 
 void XShader::Draw() {
-//    XLOGE("XShader Draw!");
+//    XLOGE("XShader Draw!");dra
+    mux.lock();
     if (program == 0) {
+        mux.unlock();
         XLOGE("Program is NUll when call Draw of Xshader!");
         return;
     }
     //三维绘制
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+    mux.unlock();
 }

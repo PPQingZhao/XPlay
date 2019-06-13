@@ -6,8 +6,8 @@
 #include "../audio/IResample.h"
 #include "../audio/IAudioPlay.h"
 
-IPlayer *IPlayerBuilder::BuilderPlayer(unsigned char index) {
-    IPlayer *player = CreateIplayer(index);
+IPlayer *IPlayerBuilder::BuilderPlayer() {
+    IPlayer *player = CreateIplayer();
     //解封装
     IDemux *demux = CreateDemux();
     //视频解码器

@@ -15,6 +15,8 @@ public:
 
     virtual void Render(XData data) = 0;
 
+    virtual void Close() = 0;
+
     IObserver *observer;
 
     IVideoView();

@@ -20,7 +20,8 @@ public:
      * @return
      */
     virtual bool Open(XParameter xParameter,XDecodeFormat format);
-
+    virtual void Close();
+    virtual void Clear();
     //发送数据到线程
     virtual bool SendPacket(XData data);
 
@@ -30,6 +31,7 @@ public:
 protected:
     AVCodecContext *avCodecContext = 0;
     AVFrame *avFrame = 0;
+    std::mutex mux;
 };
 
 #endif //XPLAY_FFDECODE_H

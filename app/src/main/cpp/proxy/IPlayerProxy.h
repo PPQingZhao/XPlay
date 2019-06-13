@@ -16,19 +16,30 @@ public:
         static IPlayerProxy playerProxy;
         return &playerProxy;
     }
+
     void InitHard(void *vm);
-    void Init(long key);
 
-    virtual bool Open(const char *path);
+    long BuilderPlayer();
 
-    virtual bool Start();
+    virtual bool Open(long key, const char *path, bool isHardDecode);
 
-    virtual bool InitView(void *win);
+    virtual void Close(long key);
+
+    virtual bool Start(long key);
+
+    virtual bool Seek(long key, double pos);
+
+    virtual bool InitView(long key, void *win);
+
+    double PlayPos(long key);
+
+    bool IsPausing(long key);
+
+    void SetPause(long key, bool isP);
 
 protected:
-    IPlayer *player = 0;
     std::mutex mutex;
-    std::map<long, IPlayer *> playMap;
+    std::map<long, IPlayer *> playerMap;
 };
 
 

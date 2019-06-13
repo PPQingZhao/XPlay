@@ -4,15 +4,12 @@
     <item
         android:width="24dp"
         android:height="24dp"
-        android:gravity="center">
-        <shape android:shape="oval">
-            <solid android:color="@color/colorBlack"></solid>
-        </shape>
-    </item>
+        android:drawable="@drawable/shape_oval_black"
+        android:gravity="center"></item>
     <item
         android:width="24dp"
         android:height="24dp"
-        android:drawable="@drawable/ic_playlarge"
+        android:drawable="@drawable/ic_play"
         android:gravity="center">
 
     </item>

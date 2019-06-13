@@ -6,6 +6,7 @@
 #define XPLAY_FFPLAYERBUILDER_H
 
 
+#include <map>
 #include "IPlayerBuilder.h"
 
 class FFPlayerBuilder : public IPlayerBuilder {
@@ -26,7 +27,8 @@ protected:
 
     virtual IAudioPlay *CreateAudioPlay();
 
-    virtual IPlayer *CreateIplayer(unsigned char index = 0);
+    virtual IPlayer *CreateIplayer();
+
 };
 
 

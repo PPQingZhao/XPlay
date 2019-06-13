@@ -1,6 +1,4 @@
-//
-// Created by qing on 18-12-26.
-//
+
 #include "IObservable.h"
 
 //添加观察者

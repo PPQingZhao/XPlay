@@ -1,19 +1,9 @@
-//
-// Created by qing on 19-1-21.
-//
 
 #include "SLAudioPlay.h"
 #include "../log/XLog.h"
 #include <SLES/OpenSLES.h>          //音频播放器
 #include <SLES/OpenSLES_Android.h>　//音频播放器
 #include <stdio.h>
-
-static SLObjectItf slObjectItf = NULL;
-static SLEngineItf slEngineItf;
-static SLObjectItf mix = NULL;
-static SLObjectItf player = NULL;
-static SLPlayItf slPlayItf = NULL;
-static SLAndroidSimpleBufferQueueItf simpleBufferQueueItf_player = NULL;
 
 SLAudioPlay::~SLAudioPlay() {
     delete this->buf;
@@ -24,7 +14,7 @@ SLAudioPlay::SLAudioPlay() {
 }
 
 //音频播放器引擎初始化
-static SLEngineItf CreateSL() {
+SLEngineItf SLAudioPlay::CreateSL() {
     SLresult sLresult;
     SLEngineItf slEngineItf = NULL;
 
@@ -58,8 +48,12 @@ void SLAudioPlay::PlayCall(void *bufq) {
     }
     if (!buf)
         return;
-    memcpy(buf,d.data,d.size);
-    (*bf)->Enqueue(bf, buf, d.size);
+    memcpy(buf, d.data, d.size);
+    mux.lock();
+    if (bf && (*bf)) {
+        (*bf)->Enqueue(bf, buf, d.size);
+    }
+    mux.unlock();
     d.Drop();
 }
 
@@ -73,11 +67,46 @@ PcmCallBack(SLAndroidSimpleBufferQueueItf slAndroidSimpleBufferQueueItf, void *c
     audioPlay->PlayCall((void *) slAndroidSimpleBufferQueueItf);
 }
 
+void SLAudioPlay::Close() {
+    IAudioPlay::Clear();
+    mux.lock();
+    //停止播放
+    if (slPlayItf && (*slPlayItf)) {
+        (*slPlayItf)->SetPlayState(slPlayItf, SL_PLAYSTATE_STOPPED);
+        slPlayItf = NULL;
+    }
+    //清理播放队列
+    if (simpleBufferQueueItf_player && (*simpleBufferQueueItf_player)) {
+        (*simpleBufferQueueItf_player)->Clear(simpleBufferQueueItf_player);
+        simpleBufferQueueItf_player = NULL;
+    }
+    //销毁player对象
+    if (player && (*player)) {
+        (*player)->Destroy(player);
+        player = NULL;
+    }
+    //销毁混音器
+    if (mix && (*mix)) {
+        (*mix)->Destroy(mix);
+        mix = NULL;
+    }
+    //销毁引擎
+    if (slObjectItf && (*slObjectItf)) {
+        (*slObjectItf)->Destroy(slObjectItf);
+        slObjectItf = NULL;
+    }
+    mux.unlock();
+}
+
 bool SLAudioPlay::StartPlay(XParameter out) {
+    Close();
+    mux.lock();
+    isExit = false;
     //①创建引擎
     slEngineItf = CreateSL();
     if (!slEngineItf) {
         XLOGE("===========>> CreatedSL failed! ");
+        mux.unlock();
         return false;
     }
 
@@ -86,6 +115,7 @@ bool SLAudioPlay::StartPlay(XParameter out) {
     slResult = (*slEngineItf)->CreateOutputMix(slEngineItf, &mix, 0, 0, 0);
     if (slResult != SL_RESULT_SUCCESS) {
         XLOGE("==============>> CreateOutputMix failed!");
+        mux.unlock();
         return false;
     }
 
@@ -93,6 +123,7 @@ bool SLAudioPlay::StartPlay(XParameter out) {
     slResult = (*mix)->Realize(mix, SL_BOOLEAN_FALSE);
     if (slResult != SL_RESULT_SUCCESS) {
         XLOGE("==============>> Realize failed!");
+        mux.unlock();
         return false;
     }
 
@@ -100,18 +131,25 @@ bool SLAudioPlay::StartPlay(XParameter out) {
     SLDataLocator_OutputMix slDataLocator_outputMix = {SL_DATALOCATOR_OUTPUTMIX, mix};
     //
     SLDataSink slDataSink = {&slDataLocator_outputMix, NULL};
-
     //③ 配置音频信息
     //缓冲队列 10个长度
     SLDataLocator_AndroidSimpleBufferQueue simpleBufferQueue = {
             SL_DATALOCATOR_ANDROIDSIMPLEBUFFERQUEUE, 10};
+    SLuint32 channelMask;
+    if (out.channels == 6) {
+        channelMask =
+                SL_SPEAKER_FRONT_LEFT | SL_SPEAKER_FRONT_RIGHT | SL_SPEAKER_FRONT_CENTER
+                | SL_SPEAKER_BACK_LEFT | SL_SPEAKER_BACK_RIGHT | SL_SPEAKER_BACK_CENTER;
+    } else {
+        channelMask = SL_SPEAKER_FRONT_LEFT | SL_SPEAKER_FRONT_RIGHT;
+    }
     //具体的音频格式
     SLDataFormat_PCM pcm = {SL_DATAFORMAT_PCM,                              //pcm格式
                             (SLuint32) out.channels,                                   //声道数
                             (SLuint32) out.sample_rate * 1000,                         //采样率
                             SL_PCMSAMPLEFORMAT_FIXED_16,
                             SL_PCMSAMPLEFORMAT_FIXED_16,                     //单个容器的大小
-                            SL_SPEAKER_FRONT_LEFT | SL_SPEAKER_FRONT_RIGHT,  //前左声道　　前右声道
+                            channelMask,  //前左声道　　前右声道 ...
                             SL_BYTEORDER_LITTLEENDIAN};                     //字节序,小端
 
     SLDataSource slDataSource = {&simpleBufferQueue, &pcm};
@@ -131,24 +169,28 @@ bool SLAudioPlay::StartPlay(XParameter out) {
 
     if (slResult != SL_RESULT_SUCCESS) {
         XLOGE("==================>> CreateAudioPlayer failed!");
+        mux.unlock();
         return false;
     }
     //　实例化播放器对象
     slResult = (*player)->Realize(player, SL_BOOLEAN_FALSE);
     if (slResult != SL_RESULT_SUCCESS) {
         XLOGE("==========>> (*player)->Realize failed!");
+        mux.unlock();
         return false;
     }
     //获取player　接口
     slResult = (*player)->GetInterface(player, SL_IID_PLAY, &slPlayItf);
     if (slResult != SL_RESULT_SUCCESS) {
         XLOGE("================>> (*player)->GetInterface  SL_IID_PLAY failed!");
+        mux.unlock();
         return false;
     }
     //获取　队列
     slResult = (*player)->GetInterface(player, SL_IID_BUFFERQUEUE, &simpleBufferQueueItf_player);
     if (slResult != SL_RESULT_SUCCESS) {
         XLOGE("================>> (*player)->GetInterface SL_IID_BUFFERQUEUE failed!");
+        mux.unlock();
         return false;
     }
 
@@ -157,6 +199,7 @@ bool SLAudioPlay::StartPlay(XParameter out) {
                                                                 PcmCallBack, this);
     if (slResult != SL_RESULT_SUCCESS) {
         XLOGE("================>>  (*simpleBufferQueueItf_player)->RegisterCallback failed!");
+        mux.unlock();
         return false;
     }
 
@@ -165,5 +208,6 @@ bool SLAudioPlay::StartPlay(XParameter out) {
     //启动队列回调  插入一个字节
     (*simpleBufferQueueItf_player)->Enqueue(simpleBufferQueueItf_player, "", 1);
     XLOGE("StartPlay success!");
+    mux.unlock();
     return true;
 }

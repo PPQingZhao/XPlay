@@ -23,7 +23,6 @@ public:
             return;
         }
 //        XLOGE("AudioPlay update size is %d.",data.size);
-
         while (true) {
 //            XLOGE("AudioPlay update maxFrame size is %d ", audioPlay->maxFrame);
             audioPlay->frameMutex.lock();
@@ -41,21 +40,38 @@ public:
 
 };
 
+void IAudioPlay::Clear() {
+    frameMutex.lock();
+    while (!frames.empty()) {
+        frames.front().Drop();
+        frames.pop_front();
+    }
+    frameMutex.unlock();
+}
+
 XData IAudioPlay::GetData() {
     XData d;
-    while(true){
+    isRunning = true;
+    while (!isExit) {
+        if (IsPausing()) {
+            XSleep(2);
+            continue;
+        }
 //        XLOGE("AudioPlay GetData is %d ", frames.empty());
         frameMutex.lock();
-        if (!frames.empty()){
+        if (!frames.empty()) {
 //            XLOGE("AudioPlay GetData22 is %d ", frames.empty());
             d = frames.front();
             frames.pop_front();
+            pts = d.pts;
             frameMutex.unlock();
             return d;
         }
         frameMutex.unlock();
         XSleep(1);
     }
+    isRunning = false;
+    //未获取数据
     return d;
 }
 
